@@ -11,16 +11,15 @@ warnings.filterwarnings("ignore")
 logging.getLogger("ppocr").setLevel(logging.ERROR)
 os.environ["QT_QPA_PLATFORM"] = "xcb"
 
-# 복잡해서 실패했던 이미지 경로를 넣어주세요
-IMAGE_PATH = "/home/intel/Documents/medibuddy/OCR/test_image/4.png" # 처방전 예시
+
+IMAGE_PATH = "/home/intel/Documents/medibuddy/OCR/test_image/4.png" # 이미지 경로
 
 # ==========================================
-# 1. 좌표 기반 클러스터링 (핵심 로직 🔥)
+# 1. 좌표 기반 클러스터링
 # ==========================================
 def cluster_text_boxes(bboxes, x_tol=20, y_tol=30):
     """
-    글자 박스들을 받아 서로 가까운 것끼리 병합하여 큰 덩어리(문단)를 만듭니다.
-    이미지 처리가 아닌, 순수 좌표 계산입니다.
+    글자 박스들을 받아 서로 가까운 것끼리 병합하여 큰 덩어리(문단) 만들기, 순수 좌표 계산
     
     x_tol: 가로로 이만큼 떨어져 있어도 합침 (단어 사이 연결) - 작게 잡아야 단 분리됨
     y_tol: 세로로 이만큼 떨어져 있어도 합침 (줄 사이 연결)
@@ -119,7 +118,7 @@ def extract_data_smart(result_item):
 
 def main():
     print("="*50)
-    print(f"🧲 Coordinate Clustering OCR: {IMAGE_PATH}")
+    print(f"Coordinate Clustering OCR: {IMAGE_PATH}")
     print("="*50)
 
     if not os.path.exists(IMAGE_PATH):
@@ -129,7 +128,7 @@ def main():
     image = cv2.imread(IMAGE_PATH)
     if image is None: return
 
-    # 1. OCR 먼저 수행 (글자 위치를 알아야 묶으니까요)
+    # 1. OCR 먼저 수행
     print("✓ 전체 텍스트 스캔 중...")
     ocr = PaddleOCR(lang='korean', use_angle_cls=True)
     result = ocr.ocr(image)
@@ -156,7 +155,7 @@ def main():
     # bbox만 리스트로 추출
     all_bboxes = [item['bbox'] for item in flat_data]
     
-    # 🔥 파라미터 튜닝 가이드 🔥
+    # 튜닝 필요시,
     # x_tol=20: 단어 사이 간격 (이보다 멀면 다른 단/문단)
     # y_tol=30: 줄 간격 (이보다 멀면 다른 문단) -> 팍스로비드 같은 건 15~20 추천
     layout_clusters = cluster_text_boxes(all_bboxes, x_tol=30, y_tol=20)
@@ -233,9 +232,8 @@ def main():
     cv2.imwrite(vis_path, vis_img)
     
     print("\n" + "="*50)
-    print(f"💾 JSON 저장됨: {json_path}")
-    print(f"📸 확인 이미지: {vis_path}")
-    print("👉 팁: 만약 문단이 너무 잘게 쪼개지면 x_tol, y_tol 값을 조금만 늘려주세요!")
+    print(f" JSON 저장: {json_path}")
+    print(f" 이미지 저장: {vis_path}")
 
 if __name__ == "__main__":
     main()
